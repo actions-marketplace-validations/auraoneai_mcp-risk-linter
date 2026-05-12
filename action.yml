@@ -1,0 +1,23 @@
+name: MCP Risk Linter
+description: Scan MCP server repositories for readiness risks.
+author: AuraOne
+inputs:
+  path:
+    description: Path to scan.
+    required: false
+    default: "."
+  fail-on:
+    description: Severity threshold that fails the action: low, medium, high, critical, or none.
+    required: false
+    default: "high"
+  format:
+    description: Report format: markdown, json, or sarif.
+    required: false
+    default: "markdown"
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        python -m pip install mcp-risk-linter
+        mcp-risk-linter scan "${{ inputs.path }}" --fail-on "${{ inputs.fail-on }}" --format "${{ inputs.format }}"

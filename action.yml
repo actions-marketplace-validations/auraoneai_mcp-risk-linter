@@ -1,6 +1,9 @@
 name: MCP Risk Linter
 description: Scan MCP server repositories for readiness risks.
 author: AuraOne
+branding:
+  icon: shield
+  color: blue
 inputs:
   path:
     description: Path to scan.

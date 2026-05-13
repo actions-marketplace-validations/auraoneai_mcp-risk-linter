@@ -23,6 +23,7 @@ PATTERNS: list[tuple[str, re.Pattern[str]]] = [
 AUTH_WORDS = re.compile(r"\b(auth|oauth|token|permission|scope|credential|secret|authorization|access boundary|least privilege)\b", re.I)
 SIDE_EFFECT_WORDS = re.compile(r"\b(create|update|delete|remove|write|send|modify|edit|commit|push|upload|purchase|side effect)\b", re.I)
 VAGUE_DESCRIPTION = re.compile(r"^\s*(tool|utility|helper|does things|runs command|access data|manage files)\s*\.?\s*$", re.I)
+SUPPRESSION = re.compile(r"mcp-risk-linter:\s*ignore\s+([A-Z0-9_, -]+)\s+--\s*(.{8,})", re.I)
 
 
 @dataclass(frozen=True)
@@ -130,9 +131,26 @@ def _scan_source_text(text: str, rel: str) -> list[Finding]:
     for rule_id, pattern in PATTERNS:
         for index, line in enumerate(lines, start=1):
             if pattern.search(line):
+                if _suppressed(lines, index, rule_id):
+                    continue
                 rule = RULES[rule_id]
                 findings.append(_finding(rule_id, rule.description, rel, index, line.strip()[:200]))
     return findings
+
+
+def _suppressed(lines: list[str], index: int, rule_id: str) -> bool:
+    candidates = []
+    if index > 1:
+        candidates.append(lines[index - 2])
+    candidates.append(lines[index - 1])
+    for candidate in candidates:
+        match = SUPPRESSION.search(candidate)
+        if not match:
+            continue
+        rules = {part.strip().upper() for part in re.split(r"[, ]+", match.group(1)) if part.strip()}
+        if rule_id in rules or "ALL" in rules:
+            return True
+    return False
 
 
 def _scan_tools(tools: list[ToolDefinition]) -> list[Finding]:

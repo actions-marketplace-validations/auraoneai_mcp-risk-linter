@@ -10,6 +10,8 @@ The methodology is intentionally conservative:
 4. Scan docs for missing security and permission-boundary language.
 5. Emit findings as review prompts, not exploit claims.
 
+Suppressions are accepted only when the source line or immediately preceding line contains `mcp-risk-linter: ignore RULE -- justification`. The justification is required so reviewers can distinguish an accepted false positive from an accidental blind spot.
+
 Severity reflects review urgency:
 
 - `critical`: unsafe by default and likely to require immediate human review.

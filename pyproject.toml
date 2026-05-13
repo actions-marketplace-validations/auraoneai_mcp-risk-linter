@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-risk-linter"
-version = "0.1.0"
+version = "0.1.1"
 description = "Readiness linter for MCP server tool, auth, filesystem, shell, network, and documentation risks."
 readme = "README.md"
 requires-python = ">=3.10"

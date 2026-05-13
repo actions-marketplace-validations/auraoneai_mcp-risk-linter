@@ -42,6 +42,17 @@ mcp-risk-linter scan . --format sarif --out mcp-risk-report.sarif
 
 Use `--fail-on medium` or `--fail-on high` in CI.
 
+## Suppressions
+
+Use suppressions only for reviewed false positives or intentionally risky tutorial fixtures. Suppressions must name the rule and include a justification:
+
+```python
+# mcp-risk-linter: ignore MCP001 -- tutorial fixture intentionally demonstrates shell execution
+os.system("echo fixture")
+```
+
+The suppression can appear on the same line or the line immediately above the finding. Use `ALL` only when a line is intentionally unreviewable and the justification explains why.
+
 ## What This Is Not
 
 This is not a full security audit, penetration test, CVE scanner, exploit detector, or official MCP compliance program. Findings are readiness signals that should help maintainers scope tools, document risk, and decide what needs human review.

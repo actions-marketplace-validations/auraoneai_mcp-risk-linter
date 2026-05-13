@@ -30,6 +30,17 @@ def test_broad_filesystem_fixture_reports_filesystem_and_network():
     assert "MCP003" in rule_ids
 
 
+def test_inline_suppression_requires_rule_and_justification(tmp_path):
+    (tmp_path / "README.md").write_text("## Security\nUses explicit auth scopes.\n", encoding="utf8")
+    (tmp_path / "server.py").write_text(
+        "# mcp-risk-linter: ignore MCP001 -- tutorial fixture intentionally shells out\n"
+        "os.system('echo fixture')\n",
+        encoding="utf8",
+    )
+    report = scan_path(tmp_path)
+    assert "MCP001" not in {finding.rule_id for finding in report.findings}
+
+
 def test_markdown_json_and_sarif_render():
     report = scan_path(ROOT / "examples/risky_stdio_server")
     markdown = render_report(report, "markdown")

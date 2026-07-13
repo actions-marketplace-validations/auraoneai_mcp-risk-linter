@@ -53,7 +53,7 @@ proof of a vulnerability or exploit.
 The published Action should be pinned to its immutable release commit:
 
 ```yaml
-- uses: auraoneai/mcp-risk-linter@a41c7c1ba00461c4b18d7ae3159697ba04eb7bb4 # v0.1.6
+- uses: auraoneai/mcp-risk-linter@42a7ef839a7b2bd111fd83f70c6657e831ae0ee6 # v0.1.6
   with:
     path: .
     fail-on: high

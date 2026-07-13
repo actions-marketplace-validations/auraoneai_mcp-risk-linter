@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: auraoneai/mcp-risk-linter@a41c7c1ba00461c4b18d7ae3159697ba04eb7bb4 # v0.1.6
+      - uses: auraoneai/mcp-risk-linter@42a7ef839a7b2bd111fd83f70c6657e831ae0ee6 # v0.1.6
         with:
           path: .
           fail-on: high

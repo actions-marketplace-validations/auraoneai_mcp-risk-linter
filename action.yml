@@ -1,28 +1,28 @@
-name: MCP Risk Linter
-description: Scan MCP server repositories for readiness risks.
+name: Lint MCP Server Risk
+description: Statically scan MCP server source and docs for capability, permission, and disclosure risks.
 author: AuraOne
 branding:
   icon: shield
   color: blue
 inputs:
   path:
-    description: Path to scan.
+    description: Repository-relative file or directory to scan; defaults to the checked-out workspace.
     required: false
     default: "."
   fail-on:
-    description: "Severity threshold that fails the action: low, medium, high, critical, or none."
+    description: "Lowest severity that fails the job: low, medium, high, critical, or none."
     required: false
     default: "high"
   format:
-    description: "Report format: markdown, json, or sarif."
+    description: "Report serialization: markdown, json, or sarif."
     required: false
     default: "markdown"
   output:
-    description: "Path where the report should be written."
+    description: "Repository-relative report path; its parent directory must already exist."
     required: false
     default: "mcp-risk-report.md"
   comment:
-    description: "Post or update a pull request comment with the report."
+    description: "Set to true to create or update a marked pull request comment on pull_request events."
     required: false
     default: "false"
 runs:

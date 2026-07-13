@@ -4,4 +4,4 @@ from .scanner import Finding, ScanReport, scan_path
 
 __all__ = ["Finding", "ScanReport", "scan_path"]
 
-__version__ = "0.1.1"
+__version__ = "0.1.6"

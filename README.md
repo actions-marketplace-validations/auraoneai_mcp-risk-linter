@@ -1,76 +1,109 @@
 # mcp-risk-linter
 
-`mcp-risk-linter` is a readiness linter for Model Context Protocol server repositories. It scans manifests, package metadata, source files, and docs for risky tool surfaces before an MCP server is published, installed, or admitted into an internal agent platform.
+`mcp-risk-linter` statically scans a Model Context Protocol server repository
+for capability, permission, secret-handling, and disclosure risks before human
+review or installation.
 
-It is designed for MCP maintainers, agent infrastructure teams, and security reviewers who need fast, local, deterministic checks.
+## At a Glance
 
-## Quickstart
+| | |
+| --- | --- |
+| Job | Find review-worthy MCP tool and repository risks with deterministic local rules. |
+| Built for | MCP maintainers, agent platform teams, security reviewers, and CI owners. |
+| Differentiator | Scans source, JSON metadata, and docs without starting the MCP server. |
+| Produces | Discovered tool inventory plus Markdown, JSON, or SARIF findings with remediation. |
+
+## Install
 
 ```bash
-python -m venv .venv
-. .venv/bin/activate
-pip install mcp-risk-linter
-mcp-risk-linter scan examples/risky_stdio_server --format markdown --out report.md
+python -m pip install "mcp-risk-linter==0.1.6"
 ```
 
-For local development:
+## Verified Quickstart
+
+Run from a source checkout:
 
 ```bash
-python -m pytest -q
-python -m mcp_risk_linter.cli scan examples/risky_stdio_server --format json
+mcp-risk-linter scan examples/safe_server \
+  --format json \
+  --out /tmp/mcp-risk-report.json \
+  --fail-on high
 ```
+
+The bundled safe fixture discovers two tools and returns no findings. The
+`risky_stdio_server` and `broad_filesystem_server` fixtures intentionally
+exercise findings and can return exit code `1` at the default `high` threshold.
 
 ## What It Checks
 
-- shell execution paths such as `subprocess`, `exec`, `spawn`, and `os.system`;
-- broad filesystem access, including home-directory and root traversal patterns;
-- broad network access through HTTP clients, sockets, or fetch calls;
-- suspicious secret handling such as logging environment variables or token-like values;
-- mutating tools whose descriptions do not clearly explain side effects;
-- vague or overbroad tool descriptions;
-- missing security documentation;
-- missing authentication or permission-boundary language;
-- README claims that imply trust without explaining scope.
+- Python, JavaScript, and TypeScript source patterns for shell execution, broad
+  filesystem access, outbound network calls, and secret-like environment use;
+- JSON and source patterns that expose tool names and descriptions;
+- vague tool descriptions and mutating tools without side-effect language;
+- missing security documentation and missing authentication or permission
+  boundary language;
+- justified inline suppressions using
+  `mcp-risk-linter: ignore RULE -- justification`.
 
-## Report Formats
+The rules are regex and metadata heuristics. A finding is a review prompt, not
+proof of a vulnerability or exploit.
 
-```bash
-mcp-risk-linter scan . --format markdown --out mcp-risk-report.md
-mcp-risk-linter scan . --format json --out mcp-risk-report.json
-mcp-risk-linter scan . --format sarif --out mcp-risk-report.sarif
+## GitHub Action
+
+The published Action should be pinned to its immutable release commit:
+
+```yaml
+- uses: auraoneai/mcp-risk-linter@42a7ef839a7b2bd111fd83f70c6657e831ae0ee6 # v0.1.6
+  with:
+    path: .
+    fail-on: high
+    format: markdown
+    output: mcp-risk-report.md
 ```
 
-Use `--fail-on medium` or `--fail-on high` in CI.
+See [`docs/github-action.md`](docs/github-action.md) for the complete workflow,
+permissions, job-summary behavior, and optional pull request comments.
 
-## Suppressions
+## Runtime, Data, and Network Boundary
 
-Use suppressions only for reviewed false positives or intentionally risky tutorial fixtures. Suppressions must name the rule and include a justification:
+- The CLI recursively reads local source, JSON, and documentation files while
+  skipping common VCS, virtual environment, dependency, build, and cache
+  directories.
+- The scanner does not execute server code or make network requests.
+- Reports include repository paths, source line numbers, snippets, tool names,
+  and descriptions. Review reports before posting them outside the repository.
+- The composite Action may contact the configured Python package index while
+  installing build requirements. With `comment: "true"`, it also calls the
+  GitHub API to create or update a pull request comment.
 
-```python
-# mcp-risk-linter: ignore MCP001 -- tutorial fixture intentionally demonstrates shell execution
-os.system("echo fixture")
-```
+## Limitations
 
-The suppression can appear on the same line or the line immediately above the finding. Use `ALL` only when a line is intentionally unreviewable and the justification explains why.
+- Findings come from static rules and text heuristics. They are review prompts,
+  not proof of exploitability, vulnerability, or compliance failure.
+- The scanner cannot see runtime-only permissions, dynamic dispatch, or network
+  behavior that is not inspectable in checked-in source and docs.
 
-## What This Is Not
+## Compatibility
 
-This is not a full security audit, penetration test, CVE scanner, exploit detector, or official MCP compliance program. Findings are readiness signals that should help maintainers scope tools, document risk, and decide what needs human review.
+The published `auraone-agent-studio-open` CLI declares
+`mcp-risk-linter>=0.1.1` as a runtime dependency and exposes the same scanner
+through `agentstudio risk-scan`.
 
-This project is not affiliated with Anthropic, the Model Context Protocol project, OpenAI, or any registry operator.
+This project is not affiliated with Anthropic, the Model Context Protocol
+project, OpenAI, or a registry operator. It is not a penetration test, CVE
+scanner, exploit detector, or official compliance program.
 
-## Examples
+## Publication Status
 
-- `examples/safe_server` - narrow tools with explicit read-only descriptions and security docs.
-- `examples/risky_stdio_server` - shell execution, environment leakage, and vague mutating tools.
-- `examples/broad_filesystem_server` - broad filesystem and network access patterns.
+Verified on 2026-07-13:
 
-## Exit Codes
+- PyPI: [`mcp-risk-linter==0.1.6`](https://pypi.org/project/mcp-risk-linter/0.1.6/)
+- GitHub Action release: [`v0.1.6`](https://github.com/auraoneai/mcp-risk-linter/releases/tag/v0.1.6)
+- The Action and PyPI package share release `0.1.6`; the Action installs the
+  package source from its checked-out immutable commit.
+- No external adoption or security-assurance claim is made.
 
-- `0`: no findings at or above the configured failure threshold.
-- `1`: findings met or exceeded the configured threshold.
-- `2`: invalid CLI usage.
+## Next Action
 
-## Review Ask
-
-If you maintain an MCP server, the most useful feedback is whether the rule taxonomy catches real review concerns without making misleading claims. The goal is narrow technical review, not endorsement.
+Scan one MCP server before installation, review every high-severity finding with
+the maintainer, and add only narrowly justified suppressions.
